@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 4.2)
 project(examples)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples/build)
+
 add_executable(list list.c)
 target_link_libraries(list decklink_c)
 
