@@ -43,9 +43,10 @@ impl Context {
                 callback_type = Some(a.get_type().unwrap().get_display_name());
             } else {
                 let type_name = self.convert_type(&a.get_type().unwrap());
+                let orig_type = a.get_type().unwrap().get_display_name();
 
                 args.push(format!("{} {}", type_name, a.get_display_name().unwrap()));
-                arg_names.push(a.get_display_name().unwrap());
+                arg_names.push(format!("({}){}", orig_type, a.get_display_name().unwrap()));
             }
         }
 

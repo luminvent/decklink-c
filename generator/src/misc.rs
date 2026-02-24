@@ -43,7 +43,11 @@ pub fn generate_types_files(
         }
     }
 
+    write_byte(file_c, b"typedef void cdecklink_custom_video_frame_t;\n");
     write_byte(file_c, b"\n#endif //DECKLINK_C_TYPES_H\n");
+
+    write_byte(file_cpp, b"class CustomDecklinkFrame;\n");
+    write_byte(file_cpp, b"typedef CustomDecklinkFrame cdecklink_custom_video_frame_t;\n");
     // write_byte(file_cpp, b"\n#endif //DECKLINK_C_TYPES_H\n");
 }
 
@@ -63,6 +67,10 @@ pub fn process_enums(tu: &clang::TranslationUnit, ctx: &mut Context, file: &mut 
             new_name.replace_range(Range { start: 0, end: 12 }, "_Decklink");
         } else if new_name.starts_with("_BMD") {
             new_name.replace_range(Range { start: 0, end: 4 }, "_Decklink");
+        } else if new_name.starts_with("BMDDeckLink") {
+            new_name.replace_range(Range { start: 0, end: 11 }, "Decklink");
+        } else if new_name.starts_with("BMD") {
+            new_name.replace_range(Range { start: 0, end: 3 }, "Decklink");
         }
 
         write_str(file, format!("enum {} {{\n", new_name));
@@ -84,7 +92,8 @@ pub fn process_enums(tu: &clang::TranslationUnit, ctx: &mut Context, file: &mut 
             write_str(file, format!("\t{} = {},\n", name, val.1));
         }
 
-        write_byte(file, b"};\n\n");
+        write_byte(file, b"};\n");
+        write_str(file, format!("typedef enum {} {};\n\n", new_name, new_name));
     }
 
     write_byte(file, b"\n");
@@ -173,12 +182,12 @@ pub fn process_c_functions(
         .get_entity()
         .get_children()
         .into_iter()
-        .filter(|e| e.get_kind() == clang::EntityKind::UnexposedDecl && e.get_name().is_none())
+        .filter(|e| e.get_kind() == clang::EntityKind::LinkageSpec && e.get_name().is_none())
         .collect::<Vec<clang::Entity>>();
 
     for t in funcs {
         for t in t.get_children() {
-            let n = t.get_name().unwrap();
+            let n = t.get_name().unwrap_or_default();
             if n.starts_with("Create") {
                 // println!("func {} {:?}", n, t.get_kind());
 

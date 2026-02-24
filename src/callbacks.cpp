@@ -27,28 +27,28 @@ public:
 
 	HRESULT TimecodeUpdate(BMDTimecodeBCD currentTimecode) override {
 		if (cb0_ != nullptr) {
-			return cb0_(ctx_, currentTimecode);
+			return cb0_(ctx_, (BMDTimecodeBCD)currentTimecode);
 		}
 		return S_FALSE;
 	}
 
 	HRESULT VTRControlStateChanged(BMDDeckControlVTRControlState newState, BMDDeckControlError error) override {
 		if (cb1_ != nullptr) {
-			return cb1_(ctx_, newState, error);
+			return cb1_(ctx_, (BMDDeckControlVTRControlState)newState, (BMDDeckControlError)error);
 		}
 		return S_FALSE;
 	}
 
 	HRESULT DeckControlEventReceived(BMDDeckControlEvent event, BMDDeckControlError error) override {
 		if (cb2_ != nullptr) {
-			return cb2_(ctx_, event, error);
+			return cb2_(ctx_, (BMDDeckControlEvent)event, (BMDDeckControlError)error);
 		}
 		return S_FALSE;
 	}
 
 	HRESULT DeckControlStatusChanged(BMDDeckControlStatusFlags flags, uint32_t mask) override {
 		if (cb3_ != nullptr) {
-			return cb3_(ctx_, flags, mask);
+			return cb3_(ctx_, (BMDDeckControlStatusFlags)flags, (uint32_t)mask);
 		}
 		return S_FALSE;
 	}
@@ -84,7 +84,7 @@ public:
 
 	HRESULT ScheduledFrameCompleted(IDeckLinkVideoFrame * completedFrame, BMDOutputFrameCompletionResult result) override {
 		if (cb0_ != nullptr) {
-			return cb0_(ctx_, completedFrame, result);
+			return cb0_(ctx_, (IDeckLinkVideoFrame *)completedFrame, (BMDOutputFrameCompletionResult)result);
 		}
 		return S_FALSE;
 	}
@@ -127,14 +127,14 @@ public:
 
 	HRESULT VideoInputFormatChanged(BMDVideoInputFormatChangedEvents notificationEvents, IDeckLinkDisplayMode * newDisplayMode, BMDDetectedVideoInputFormatFlags detectedSignalFlags) override {
 		if (cb0_ != nullptr) {
-			return cb0_(ctx_, notificationEvents, newDisplayMode, detectedSignalFlags);
+			return cb0_(ctx_, (BMDVideoInputFormatChangedEvents)notificationEvents, (IDeckLinkDisplayMode *)newDisplayMode, (BMDDetectedVideoInputFormatFlags)detectedSignalFlags);
 		}
 		return S_FALSE;
 	}
 
 	HRESULT VideoInputFrameArrived(IDeckLinkVideoInputFrame * videoFrame, IDeckLinkAudioInputPacket * audioPacket) override {
 		if (cb1_ != nullptr) {
-			return cb1_(ctx_, videoFrame, audioPacket);
+			return cb1_(ctx_, (IDeckLinkVideoInputFrame *)videoFrame, (IDeckLinkAudioInputPacket *)audioPacket);
 		}
 		return S_FALSE;
 	}
@@ -171,21 +171,21 @@ public:
 
 	HRESULT VideoInputSignalChanged(BMDVideoInputFormatChangedEvents notificationEvents, IDeckLinkDisplayMode * newDisplayMode, BMDDetectedVideoInputFormatFlags detectedSignalFlags) override {
 		if (cb0_ != nullptr) {
-			return cb0_(ctx_, notificationEvents, newDisplayMode, detectedSignalFlags);
+			return cb0_(ctx_, (BMDVideoInputFormatChangedEvents)notificationEvents, (IDeckLinkDisplayMode *)newDisplayMode, (BMDDetectedVideoInputFormatFlags)detectedSignalFlags);
 		}
 		return S_FALSE;
 	}
 
 	HRESULT VideoPacketArrived(IDeckLinkEncoderVideoPacket * videoPacket) override {
 		if (cb1_ != nullptr) {
-			return cb1_(ctx_, videoPacket);
+			return cb1_(ctx_, (IDeckLinkEncoderVideoPacket *)videoPacket);
 		}
 		return S_FALSE;
 	}
 
 	HRESULT AudioPacketArrived(IDeckLinkEncoderAudioPacket * audioPacket) override {
 		if (cb2_ != nullptr) {
-			return cb2_(ctx_, audioPacket);
+			return cb2_(ctx_, (IDeckLinkEncoderAudioPacket *)audioPacket);
 		}
 		return S_FALSE;
 	}
@@ -220,7 +220,7 @@ public:
 
 	HRESULT RenderAudioSamples(bool preroll) override {
 		if (cb0_ != nullptr) {
-			return cb0_(ctx_, preroll);
+			return cb0_(ctx_, (bool)preroll);
 		}
 		return S_FALSE;
 	}
@@ -255,7 +255,7 @@ public:
 
 	HRESULT DrawFrame(IDeckLinkVideoFrame * theFrame) override {
 		if (cb0_ != nullptr) {
-			return cb0_(ctx_, theFrame);
+			return cb0_(ctx_, (IDeckLinkVideoFrame *)theFrame);
 		}
 		return S_FALSE;
 	}
@@ -290,7 +290,7 @@ public:
 
 	HRESULT Notify(BMDNotifications topic, uint64_t param1, uint64_t param2) override {
 		if (cb0_ != nullptr) {
-			return cb0_(ctx_, topic, param1, param2);
+			return cb0_(ctx_, (BMDNotifications)topic, (uint64_t)param1, (uint64_t)param2);
 		}
 		return S_FALSE;
 	}
@@ -300,6 +300,49 @@ public:
 IDeckLinkNotificationCallback* cdecklink_internal_callback_create_deck_link_notification_callback (void *ctx, cdecklink_notification_callback_notify *cb0) {
 	if (cb0 != nullptr) {
 		return new DeckLinkNotificationCallback(ctx, cb0);
+	}
+	return nullptr;
+}
+
+class DeckLinkProfileCallback final : public IDeckLinkProfileCallback {
+	std::atomic<int> ref_count_{0};
+	void *ctx_;
+	cdecklink_profile_callback_profile_changing *cb0_;
+	cdecklink_profile_callback_profile_activated *cb1_;
+
+public:
+	DeckLinkProfileCallback (void *ctx, cdecklink_profile_callback_profile_changing *cb0, cdecklink_profile_callback_profile_activated *cb1)
+	: ctx_(ctx), cb0_(cb0), cb1_(cb1) {}
+
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+	ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+	ULONG STDMETHODCALLTYPE Release() override {
+		if (--ref_count_ == 0) {
+			delete this;
+			return 0;
+		}
+		return ref_count_;
+	}
+
+	HRESULT ProfileChanging(IDeckLinkProfile * profileToBeActivated, bool streamsWillBeForcedToStop) override {
+		if (cb0_ != nullptr) {
+			return cb0_(ctx_, (IDeckLinkProfile *)profileToBeActivated, (bool)streamsWillBeForcedToStop);
+		}
+		return S_FALSE;
+	}
+
+	HRESULT ProfileActivated(IDeckLinkProfile * activatedProfile) override {
+		if (cb1_ != nullptr) {
+			return cb1_(ctx_, (IDeckLinkProfile *)activatedProfile);
+		}
+		return S_FALSE;
+	}
+
+};
+
+IDeckLinkProfileCallback* cdecklink_internal_callback_create_deck_link_profile_callback (void *ctx, cdecklink_profile_callback_profile_changing *cb0, cdecklink_profile_callback_profile_activated *cb1) {
+	if (cb0 != nullptr || cb1 != nullptr) {
+		return new DeckLinkProfileCallback(ctx, cb0, cb1);
 	}
 	return nullptr;
 }
@@ -326,14 +369,14 @@ public:
 
 	HRESULT DeckLinkDeviceArrived(IDeckLink * deckLinkDevice) override {
 		if (cb0_ != nullptr) {
-			return cb0_(ctx_, deckLinkDevice);
+			return cb0_(ctx_, (IDeckLink *)deckLinkDevice);
 		}
 		return S_FALSE;
 	}
 
 	HRESULT DeckLinkDeviceRemoved(IDeckLink * deckLinkDevice) override {
 		if (cb1_ != nullptr) {
-			return cb1_(ctx_, deckLinkDevice);
+			return cb1_(ctx_, (IDeckLink *)deckLinkDevice);
 		}
 		return S_FALSE;
 	}

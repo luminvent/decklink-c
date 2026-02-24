@@ -13,7 +13,11 @@ mod util;
 
 fn main() {
     // A list of names to skip generation of, eg for special case handling
-    let ignore_names = vec!["cdecklink_notification_subscribe", "cdecklink_notification_unsubscribe"];
+    let ignore_names = vec![
+        "cdecklink_notification_subscribe",
+        "cdecklink_notification_unsubscribe",
+        "cdecklink_mutable_video_frame_set_interface_provider",
+    ];
 
     // Acquire an instance of `Clang`
     let clang = clang::Clang::new().unwrap();

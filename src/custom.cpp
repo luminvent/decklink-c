@@ -2,8 +2,9 @@
 #include "../include/custom.h"
 
 #include <atomic>
+#include <cstring>
 
-class CustomDecklinkFrame : public IDeckLinkVideoFrame
+class CustomDecklinkFrame : public IDeckLinkVideoFrame, public IDeckLinkVideoBuffer
 {
     const long width;
     const long height;
@@ -37,8 +38,27 @@ public:
     // IUnknown
 
     HRESULT STDMETHODCALLTYPE
-    QueryInterface(REFIID, LPVOID *) override
+    QueryInterface(REFIID iid, LPVOID *ppv) override
     {
+        REFIID iid_iunknown = IID_IUnknown;
+        if (memcmp(&iid, &IID_IDeckLinkVideoFrame, sizeof(REFIID)) == 0)
+        {
+            *ppv = static_cast<IDeckLinkVideoFrame*>(this);
+            AddRef();
+            return S_OK;
+        }
+        else if (memcmp(&iid, &IID_IDeckLinkVideoBuffer, sizeof(REFIID)) == 0)
+        {
+            *ppv = static_cast<IDeckLinkVideoBuffer*>(this);
+            AddRef();
+            return S_OK;
+        }
+        else if (memcmp(&iid, &iid_iunknown, sizeof(REFIID)) == 0)
+        {
+            *ppv = static_cast<IDeckLinkVideoFrame*>(this);
+            AddRef();
+            return S_OK;
+        }
         return E_NOINTERFACE;
     }
 
@@ -64,6 +84,15 @@ public:
     BMDPixelFormat STDMETHODCALLTYPE GetPixelFormat() override { return pixel_format; }
     BMDFrameFlags STDMETHODCALLTYPE GetFlags() override { return flags; }
 
+    HRESULT STDMETHODCALLTYPE GetTimecode(BMDTimecodeFormat format, IDeckLinkTimecode **timecode) override
+    {
+        return S_FALSE;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetAncillaryData(IDeckLinkVideoFrameAncillary **ancillary) override { return S_FALSE; }
+
+    // IDeckLinkVideoBuffer
+
     HRESULT STDMETHODCALLTYPE GetBytes(void **buffer) override
     {
 
@@ -78,12 +107,8 @@ public:
         }
     }
 
-    HRESULT STDMETHODCALLTYPE GetTimecode(BMDTimecodeFormat format, IDeckLinkTimecode **timecode) override
-    {
-        return S_FALSE;
-    }
-
-    HRESULT STDMETHODCALLTYPE GetAncillaryData(IDeckLinkVideoFrameAncillary **ancillary) override { return S_FALSE; }
+    HRESULT STDMETHODCALLTYPE StartAccess(BMDBufferAccessFlags flags) override { return S_OK; }
+    HRESULT STDMETHODCALLTYPE EndAccess(BMDBufferAccessFlags flags) override { return S_OK; }
 
     // Custom
 

@@ -9,7 +9,7 @@
 ** accordance with:
 ** 
 ** (1) if the Software is obtained from Blackmagic Design, the End User License 
-** Agreement for the Software Development Kit ("EULA") available at 
+** Agreement for the Software Development Kit (“EULA”) available at 
 ** https://www.blackmagicdesign.com/EULA/DeckLinkSDK; or
 ** 
 ** (2) if the Software is obtained from any third party, such licensing terms 
@@ -42,16 +42,18 @@
 #include <pthread.h>
 #include <dlfcn.h>
 
-#include "DeckLinkAPI.h"
+#include "DeckLinkAPI_v14_2_1.h"
 
 #define kDeckLinkAPI_Name "libDeckLinkAPI.so"
 #define KDeckLinkPreviewAPI_Name "libDeckLinkPreviewAPI.so"
 
 typedef IDeckLinkIterator* (*CreateIteratorFunc)(void);
 typedef IDeckLinkAPIInformation* (*CreateAPIInformationFunc)(void);
-typedef IDeckLinkGLScreenPreviewHelper* (*CreateOpenGLScreenPreviewHelperFunc)(void);
-typedef IDeckLinkVideoConversion* (*CreateVideoConversionInstanceFunc)(void);
+typedef IDeckLinkGLScreenPreviewHelper_v14_2_1* (*CreateOpenGLScreenPreviewHelperFunc)(void);
+typedef IDeckLinkGLScreenPreviewHelper_v14_2_1* (*CreateOpenGL3ScreenPreviewHelperFunc)(void);
+typedef IDeckLinkVideoConversion_v14_2_1* (*CreateVideoConversionInstanceFunc)(void);
 typedef IDeckLinkDiscovery* (*CreateDeckLinkDiscoveryInstanceFunc)(void);
+typedef IDeckLinkVideoFrameAncillaryPackets* (*CreateVideoFrameAncillaryPacketsInstanceFunc)(void);
 
 static pthread_once_t					gDeckLinkOnceControl = PTHREAD_ONCE_INIT;
 static pthread_once_t					gPreviewOnceControl = PTHREAD_ONCE_INIT;
@@ -61,23 +63,25 @@ static bool								gLoadedDeckLinkAPI = false;
 static CreateIteratorFunc					gCreateIteratorFunc = NULL;
 static CreateAPIInformationFunc				gCreateAPIInformationFunc = NULL;
 static CreateOpenGLScreenPreviewHelperFunc	gCreateOpenGLPreviewFunc = NULL;
-static CreateVideoConversionInstanceFunc	gCreateVideoConversionFunc = NULL;
+static CreateOpenGL3ScreenPreviewHelperFunc	gCreateOpenGL3PreviewFunc = NULL;
+static CreateVideoConversionInstanceFunc	gCreateVideoConversionFunc	= NULL;
 static CreateDeckLinkDiscoveryInstanceFunc	gCreateDeckLinkDiscoveryFunc = NULL;
+static CreateVideoFrameAncillaryPacketsInstanceFunc	gCreateVideoFrameAncillaryPacketsFunc = NULL;
 
-static void	InitDeckLinkAPI(void)
+static void	InitDeckLinkAPI (void)
 {
 	void *libraryHandle;
-
-	libraryHandle = dlopen(kDeckLinkAPI_Name, RTLD_NOW | RTLD_GLOBAL);
+	
+	libraryHandle = dlopen(kDeckLinkAPI_Name, RTLD_NOW|RTLD_GLOBAL);
 	if (!libraryHandle)
 	{
 		fprintf(stderr, "%s\n", dlerror());
 		return;
 	}
-
+	
 	gLoadedDeckLinkAPI = true;
-
-	gCreateIteratorFunc = (CreateIteratorFunc)dlsym(libraryHandle, "CreateDeckLinkIteratorInstance_0002");
+	
+	gCreateIteratorFunc = (CreateIteratorFunc)dlsym(libraryHandle, "CreateDeckLinkIteratorInstance_0004");
 	if (!gCreateIteratorFunc)
 		fprintf(stderr, "%s\n", dlerror());
 	gCreateAPIInformationFunc = (CreateAPIInformationFunc)dlsym(libraryHandle, "CreateDeckLinkAPIInformationInstance_0001");
@@ -86,16 +90,19 @@ static void	InitDeckLinkAPI(void)
 	gCreateVideoConversionFunc = (CreateVideoConversionInstanceFunc)dlsym(libraryHandle, "CreateVideoConversionInstance_0001");
 	if (!gCreateVideoConversionFunc)
 		fprintf(stderr, "%s\n", dlerror());
-	gCreateDeckLinkDiscoveryFunc = (CreateDeckLinkDiscoveryInstanceFunc)dlsym(libraryHandle, "CreateDeckLinkDiscoveryInstance_0001");
+	gCreateDeckLinkDiscoveryFunc = (CreateDeckLinkDiscoveryInstanceFunc)dlsym(libraryHandle, "CreateDeckLinkDiscoveryInstance_0003");
 	if (!gCreateDeckLinkDiscoveryFunc)
+		fprintf(stderr, "%s\n", dlerror());
+	gCreateVideoFrameAncillaryPacketsFunc = (CreateVideoFrameAncillaryPacketsInstanceFunc)dlsym(libraryHandle, "CreateVideoFrameAncillaryPacketsInstance_0001");
+	if (!gCreateVideoFrameAncillaryPacketsFunc)
 		fprintf(stderr, "%s\n", dlerror());
 }
 
-static void	InitDeckLinkPreviewAPI(void)
+static void	InitDeckLinkPreviewAPI (void)
 {
 	void *libraryHandle;
-
-	libraryHandle = dlopen(KDeckLinkPreviewAPI_Name, RTLD_NOW | RTLD_GLOBAL);
+	
+	libraryHandle = dlopen(KDeckLinkPreviewAPI_Name, RTLD_NOW|RTLD_GLOBAL);
 	if (!libraryHandle)
 	{
 		fprintf(stderr, "%s\n", dlerror());
@@ -104,56 +111,78 @@ static void	InitDeckLinkPreviewAPI(void)
 	gCreateOpenGLPreviewFunc = (CreateOpenGLScreenPreviewHelperFunc)dlsym(libraryHandle, "CreateOpenGLScreenPreviewHelper_0001");
 	if (!gCreateOpenGLPreviewFunc)
 		fprintf(stderr, "%s\n", dlerror());
+	gCreateOpenGL3PreviewFunc = (CreateOpenGL3ScreenPreviewHelperFunc)dlsym(libraryHandle, "CreateOpenGL3ScreenPreviewHelper_0001");
+	if (!gCreateOpenGL3PreviewFunc)
+		fprintf(stderr, "%s\n", dlerror());
 }
 
-bool		IsDeckLinkAPIPresent(void)
+bool		IsDeckLinkAPIPresent_v14_2_1 (void)
 {
 	// If the DeckLink API dynamic library was successfully loaded, return this knowledge to the caller
 	return gLoadedDeckLinkAPI;
 }
 
-IDeckLinkIterator*		CreateDeckLinkIteratorInstance(void)
+IDeckLinkIterator*		CreateDeckLinkIteratorInstance_v14_2_1 (void)
 {
 	pthread_once(&gDeckLinkOnceControl, InitDeckLinkAPI);
-
+	
 	if (gCreateIteratorFunc == NULL)
 		return NULL;
 	return gCreateIteratorFunc();
 }
 
-IDeckLinkAPIInformation*	CreateDeckLinkAPIInformationInstance(void)
+IDeckLinkAPIInformation*	CreateDeckLinkAPIInformationInstance_v14_2_1 (void)
 {
 	pthread_once(&gDeckLinkOnceControl, InitDeckLinkAPI);
-
+	
 	if (gCreateAPIInformationFunc == NULL)
 		return NULL;
 	return gCreateAPIInformationFunc();
 }
 
-IDeckLinkGLScreenPreviewHelper*		CreateOpenGLScreenPreviewHelper(void)
+IDeckLinkGLScreenPreviewHelper_v14_2_1*		CreateOpenGLScreenPreviewHelper_v14_2_1 (void)
 {
 	pthread_once(&gDeckLinkOnceControl, InitDeckLinkAPI);
 	pthread_once(&gPreviewOnceControl, InitDeckLinkPreviewAPI);
-
+	
 	if (gCreateOpenGLPreviewFunc == NULL)
 		return NULL;
 	return gCreateOpenGLPreviewFunc();
 }
 
-IDeckLinkVideoConversion* CreateVideoConversionInstance(void)
+IDeckLinkGLScreenPreviewHelper_v14_2_1*		CreateOpenGL3ScreenPreviewHelper_v14_2_1 (void)
 {
 	pthread_once(&gDeckLinkOnceControl, InitDeckLinkAPI);
+	pthread_once(&gPreviewOnceControl, InitDeckLinkPreviewAPI);
 
+	if (gCreateOpenGL3PreviewFunc == NULL)
+		return NULL;
+	return gCreateOpenGL3PreviewFunc();
+}
+
+IDeckLinkVideoConversion_v14_2_1* CreateVideoConversionInstance_v14_2_1 (void)
+{
+	pthread_once(&gDeckLinkOnceControl, InitDeckLinkAPI);
+	
 	if (gCreateVideoConversionFunc == NULL)
 		return NULL;
 	return gCreateVideoConversionFunc();
 }
 
-IDeckLinkDiscovery* CreateDeckLinkDiscoveryInstance(void)
+IDeckLinkDiscovery* CreateDeckLinkDiscoveryInstance_v14_2_1 (void)
 {
 	pthread_once(&gDeckLinkOnceControl, InitDeckLinkAPI);
-
+	
 	if (gCreateDeckLinkDiscoveryFunc == NULL)
 		return NULL;
 	return gCreateDeckLinkDiscoveryFunc();
+}
+
+IDeckLinkVideoFrameAncillaryPackets* CreateVideoFrameAncillaryPacketsInstance_v14_2_1 (void)
+{
+	pthread_once(&gDeckLinkOnceControl, InitDeckLinkAPI);
+	
+	if (gCreateVideoFrameAncillaryPacketsFunc == NULL)
+		return NULL;
+	return gCreateVideoFrameAncillaryPacketsFunc();
 }

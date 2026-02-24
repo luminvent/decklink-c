@@ -1,5 +1,5 @@
 /* -LICENSE-START-
-** Copyright (c) 2014 Blackmagic Design
+** Copyright (c) 2020 Blackmagic Design
 **  
 ** Permission is hereby granted, free of charge, to any person or organization 
 ** obtaining a copy of the software and accompanying documentation (the 
@@ -38,31 +38,20 @@
 ** -LICENSE-END-
 */
 
-#ifndef BMD_DECKLINKAPI_v10_2_H
-#define BMD_DECKLINKAPI_v10_2_H
+#ifndef BMD_DECKLINKAPI_v11_5_1_H
+#define BMD_DECKLINKAPI_v11_5_1_H
 
 #include "DeckLinkAPI.h"
 
-// Type Declarations
+/* Enum BMDDeckLinkStatusID - DeckLink Status ID */
 
-/* Enum BMDDeckLinkConfigurationID - DeckLink Configuration ID */
+typedef uint32_t BMDDeckLinkStatusID_v11_5_1;
+enum _BMDDeckLinkStatusID_v11_5_1 {
 
-typedef uint32_t BMDDeckLinkConfigurationID_v10_2;
-enum  _BMDDeckLinkConfigurationID_v10_2 {
     /* Video output flags */
-	
-    bmdDeckLinkConfig3GBpsVideoOutput_v10_2                      = '3gbs',
+
+	bmdDeckLinkStatusDetectedVideoInputFlags_v11_5_1                     = /* 'dvif' */ 0x64766966,
+
 };
 
-/* Enum BMDAudioConnection_v10_2 - Audio connection types */
-
-typedef uint32_t BMDAudioConnection_v10_2;
-enum _BMDAudioConnection_v10_2 {
-    bmdAudioConnectionEmbedded_v10_2                             = /* 'embd' */ 0x656D6264,
-    bmdAudioConnectionAESEBU_v10_2                               = /* 'aes ' */ 0x61657320,
-    bmdAudioConnectionAnalog_v10_2                               = /* 'anlg' */ 0x616E6C67,
-    bmdAudioConnectionAnalogXLR_v10_2                            = /* 'axlr' */ 0x61786C72,
-    bmdAudioConnectionAnalogRCA_v10_2                            = /* 'arca' */ 0x61726361
-};
-
-#endif /* defined(BMD_DECKLINKAPI_v10_2_H) */
+#endif /* defined(BMD_DECKLINKAPI_v11_5_1_H) */
