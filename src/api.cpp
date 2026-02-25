@@ -2,6 +2,7 @@
 #include "types.h"
 #include "../include/api.h"
 #include "callbacks.h"
+#include "../interop/Linux/include/DeckLinkAPIVideoFrame_v14_2_1.h"
 
 unsigned long cdecklink_timecode_add_ref(cdecklink_timecode_t *obj) {
 	return obj->AddRef();
@@ -1004,6 +1005,43 @@ HRESULT cdecklink_video_frame_mutable_metadata_extensions_set_bytes(cdecklink_vi
 	return obj->SetBytes((BMDDeckLinkFrameMetadataID)metadataID, (void *)buffer, (uint32_t)bufferSize);
 }
 
+
+HRESULT cdecklink_video_frame_get_bytes(cdecklink_video_frame_t *obj, void ** buffer) {
+	// Try new API (v15+): IDeckLinkVideoBuffer with StartAccess/EndAccess
+	IDeckLinkVideoBuffer *videoBuffer = nullptr;
+	HRESULT hr = obj->QueryInterface(IID_IDeckLinkVideoBuffer, reinterpret_cast<void**>(&videoBuffer));
+	if (hr == S_OK && videoBuffer != nullptr) {
+		hr = videoBuffer->StartAccess(bmdBufferAccessRead);
+		if (hr == S_OK) {
+			hr = videoBuffer->GetBytes(buffer);
+		}
+		videoBuffer->Release();
+		return hr;
+	}
+
+	// Fallback to old API (v14.2.1): IDeckLinkVideoFrame_v14_2_1 which has GetBytes directly
+	IDeckLinkVideoFrame_v14_2_1 *oldFrame = nullptr;
+	hr = obj->QueryInterface(IID_IDeckLinkVideoFrame_v14_2_1, reinterpret_cast<void**>(&oldFrame));
+	if (hr == S_OK && oldFrame != nullptr) {
+		hr = oldFrame->GetBytes(buffer);
+		oldFrame->Release();
+		return hr;
+	}
+
+	return E_NOINTERFACE;
+}
+
+HRESULT cdecklink_video_frame_end_access(cdecklink_video_frame_t *obj) {
+	IDeckLinkVideoBuffer *videoBuffer = nullptr;
+	HRESULT hr = obj->QueryInterface(IID_IDeckLinkVideoBuffer, reinterpret_cast<void**>(&videoBuffer));
+	if (hr == S_OK && videoBuffer != nullptr) {
+		hr = videoBuffer->EndAccess(bmdBufferAccessRead);
+		videoBuffer->Release();
+		return hr;
+	}
+	// Old API doesn't need EndAccess
+	return S_OK;
+}
 
 cdecklink_video_frame_t *cdecklink_video_input_frame_to_video_frame(cdecklink_video_input_frame_t *obj) {
 	return obj;

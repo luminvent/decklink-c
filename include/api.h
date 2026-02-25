@@ -1328,6 +1328,9 @@ HRESULT cdecklink_video_frame_mutable_metadata_extensions_set_flag(cdecklink_vid
 HRESULT cdecklink_video_frame_mutable_metadata_extensions_set_string(cdecklink_video_frame_mutable_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, const char * value);
 HRESULT cdecklink_video_frame_mutable_metadata_extensions_set_bytes(cdecklink_video_frame_mutable_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, void * buffer, uint32_t bufferSize);
 
+HRESULT cdecklink_video_frame_get_bytes(cdecklink_video_frame_t *obj, void ** buffer);
+HRESULT cdecklink_video_frame_end_access(cdecklink_video_frame_t *obj);
+
 cdecklink_video_frame_t *cdecklink_video_input_frame_to_video_frame(cdecklink_video_input_frame_t *obj);
 unsigned long cdecklink_video_input_frame_add_ref(cdecklink_video_input_frame_t *obj);
 unsigned long cdecklink_video_input_frame_release(cdecklink_video_input_frame_t *obj);
