@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(SOURCES
         include/api.h
         include/custom.h
+        include/custom_allocator.h
         include/decklink_c.h
         include/types.h
         include/util.h
@@ -14,6 +15,7 @@ set(SOURCES
         src/callbacks.cpp
         src/callbacks.h
         src/custom.cpp
+        src/custom_allocator.cpp
         src/types.h
         src/util.cpp
 
