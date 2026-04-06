@@ -1,6 +1,12 @@
 #define DECKLINK_C_TYPES_H
 
+#if defined(__LINUX__)
 #include "../interop/Linux/include/DeckLinkAPI.h"
+#elif defined(__APPLE__)
+#include "../interop/Mac/include/DeckLinkAPI.h"
+#else
+#warning "System not supported."
+#endif
 
 typedef IDeckLinkTimecode cdecklink_timecode_t;
 typedef IDeckLinkDisplayModeIterator cdecklink_display_mode_iterator_t;

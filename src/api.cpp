@@ -2,7 +2,14 @@
 #include "types.h"
 #include "../include/api.h"
 #include "callbacks.h"
+#if defined(__LINUX__)
 #include "../interop/Linux/include/DeckLinkAPIVideoFrame_v14_2_1.h"
+#elif defined(__APPLE__)
+#include "../interop/Mac/include/DeckLinkAPIVideoFrame_v14_2_1.h"
+#include "../interop/Mac/include/platform.h"
+#else
+#warning "System not supported."
+#endif
 
 unsigned long cdecklink_timecode_add_ref(cdecklink_timecode_t *obj) {
 	return obj->AddRef();
@@ -21,7 +28,18 @@ HRESULT cdecklink_timecode_get_components(cdecklink_timecode_t *obj, uint8_t * h
 }
 
 HRESULT cdecklink_timecode_get_string(cdecklink_timecode_t *obj, const char ** timecode) {
+#if defined(__LINUX__)
 	return obj->GetString((const char **)timecode);
+#elif defined(__APPLE__)
+    CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetString(&cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, timecode);
+
+    return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 DecklinkTimecodeFlags cdecklink_timecode_get_flags(cdecklink_timecode_t *obj) {
@@ -55,7 +73,18 @@ unsigned long cdecklink_display_mode_release(cdecklink_display_mode_t *obj) {
 }
 
 HRESULT cdecklink_display_mode_get_name(cdecklink_display_mode_t *obj, const char ** name) {
+#if defined(__LINUX__)
 	return obj->GetName((const char **)name);
+#elif defined(__APPLE__)
+    CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetName(&cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, name);
+
+    return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 DecklinkDisplayMode cdecklink_display_mode_get_display_mode(cdecklink_display_mode_t *obj) {
@@ -92,11 +121,33 @@ unsigned long cdecklink_device_release(cdecklink_device_t *obj) {
 }
 
 HRESULT cdecklink_device_get_model_name(cdecklink_device_t *obj, const char ** modelName) {
-	return obj->GetModelName((const char **)modelName);
+#if defined(__LINUX__)
+    return obj->GetModelName((const char **)modelName);
+#elif defined(__APPLE__)
+	CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetModelName(&cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, modelName);
+
+    return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 HRESULT cdecklink_device_get_display_name(cdecklink_device_t *obj, const char ** displayName) {
-	return obj->GetDisplayName((const char **)displayName);
+#if defined(__LINUX__)
+    return obj->GetDisplayName((const char **)displayName);
+#elif defined(__APPLE__)
+	CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetDisplayName(&cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, displayName);
+
+    return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 
@@ -133,11 +184,30 @@ HRESULT cdecklink_configuration_get_float(cdecklink_configuration_t *obj, Deckli
 }
 
 HRESULT cdecklink_configuration_set_string(cdecklink_configuration_t *obj, DecklinkConfigurationID cfgID, const char * value) {
+#if defined(__LINUX__)
 	return obj->SetString((BMDDeckLinkConfigurationID)cfgID, (const char *)value);
+#elif defined(__APPLE__)
+    CFStringRef cf_string_ref = CFStringCreateWithCString(kCFAllocatorDefault, value, kCFStringEncodingUTF8);
+
+	return obj->SetString((BMDDeckLinkConfigurationID)cfgID, cf_string_ref);
+#else
+#warning "System not supported."
+#endif
 }
 
 HRESULT cdecklink_configuration_get_string(cdecklink_configuration_t *obj, DecklinkConfigurationID cfgID, const char ** value) {
+#if defined(__LINUX__)
 	return obj->GetString((BMDDeckLinkConfigurationID)cfgID, (const char **)value);
+#elif defined(__APPLE__)
+	CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetString((BMDDeckLinkConfigurationID)cfgID, &cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, value);
+
+    return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 HRESULT cdecklink_configuration_write_configuration_to_preferences(cdecklink_configuration_t *obj) {
@@ -178,11 +248,30 @@ HRESULT cdecklink_encoder_configuration_get_float(cdecklink_encoder_configuratio
 }
 
 HRESULT cdecklink_encoder_configuration_set_string(cdecklink_encoder_configuration_t *obj, DecklinkEncoderConfigurationID cfgID, const char * value) {
+#if defined(__LINUX__)
 	return obj->SetString((BMDDeckLinkEncoderConfigurationID)cfgID, (const char *)value);
+#elif defined(__APPLE__)
+    CFStringRef cf_string_ref = CFStringCreateWithCString(kCFAllocatorDefault, value, kCFStringEncodingUTF8);
+
+	return obj->SetString((BMDDeckLinkEncoderConfigurationID)cfgID, cf_string_ref);
+#else
+#warning "System not supported."
+#endif
 }
 
 HRESULT cdecklink_encoder_configuration_get_string(cdecklink_encoder_configuration_t *obj, DecklinkEncoderConfigurationID cfgID, const char ** value) {
+#if defined(__LINUX__)
 	return obj->GetString((BMDDeckLinkEncoderConfigurationID)cfgID, (const char **)value);
+#elif defined(__APPLE__)
+	CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetString((BMDDeckLinkEncoderConfigurationID)cfgID, &cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, value);
+
+    return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 HRESULT cdecklink_encoder_configuration_get_bytes(cdecklink_encoder_configuration_t *obj, DecklinkEncoderConfigurationID cfgID, void * buffer, uint32_t * bufferSize) {
@@ -263,7 +352,18 @@ HRESULT cdecklink_deck_control_shuttle(cdecklink_deck_control_t *obj, double rat
 }
 
 HRESULT cdecklink_deck_control_get_timecode_string(cdecklink_deck_control_t *obj, const char ** currentTimeCode, DecklinkDeckControlError * error) {
-	return obj->GetTimecodeString((const char **)currentTimeCode, (BMDDeckControlError *)error);
+#if defined(__LINUX__)
+    return obj->GetTimecodeString((const char **)currentTimeCode, (BMDDeckControlError *)error);
+#elif defined(__APPLE__)
+    CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetTimecodeString(&cf_string_ref, (BMDDeckControlError *)error);
+
+    CFStringRefToConstChar(cf_string_ref, currentTimeCode);
+
+    return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 HRESULT cdecklink_deck_control_get_timecode(cdecklink_deck_control_t *obj, cdecklink_timecode_t ** currentTimecode, DecklinkDeckControlError * error) {
@@ -392,7 +492,18 @@ HRESULT cdecklink_api_information_get_float(cdecklink_api_information_t *obj, De
 }
 
 HRESULT cdecklink_api_information_get_string(cdecklink_api_information_t *obj, DecklinkAPIInformationID cfgID, const char ** value) {
-	return obj->GetString((BMDDeckLinkAPIInformationID)cfgID, (const char **)value);
+#if defined(__LINUX__)
+    return obj->GetString((BMDDeckLinkAPIInformationID)cfgID, (const char **)value);
+#elif defined(__APPLE__)
+	CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetString((BMDDeckLinkAPIInformationID)cfgID, &cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, value);
+
+    return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 
@@ -417,7 +528,18 @@ HRESULT cdecklink_ip_flow_attributes_get_float(cdecklink_ip_flow_attributes_t *o
 }
 
 HRESULT cdecklink_ip_flow_attributes_get_string(cdecklink_ip_flow_attributes_t *obj, DecklinkIPFlowAttributeID attrID, const char ** value) {
-	return obj->GetString((BMDDeckLinkIPFlowAttributeID)attrID, (const char **)value);
+#if defined(__LINUX__)
+    return obj->GetString((BMDDeckLinkIPFlowAttributeID)attrID, (const char **)value);
+#elif defined(__APPLE__)
+	CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetString((BMDDeckLinkIPFlowAttributeID)attrID, &cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, value);
+
+    return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 
@@ -442,7 +564,18 @@ HRESULT cdecklink_ip_flow_status_get_float(cdecklink_ip_flow_status_t *obj, Deck
 }
 
 HRESULT cdecklink_ip_flow_status_get_string(cdecklink_ip_flow_status_t *obj, DecklinkIPFlowStatusID statusID, const char ** value) {
+#if defined(__LINUX__)
 	return obj->GetString((BMDDeckLinkIPFlowStatusID)statusID, (const char **)value);
+#elif defined(__APPLE__)
+    CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetString((BMDDeckLinkIPFlowStatusID)statusID, &cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, value);
+
+    return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 
@@ -467,7 +600,18 @@ HRESULT cdecklink_ip_flow_setting_get_float(cdecklink_ip_flow_setting_t *obj, De
 }
 
 HRESULT cdecklink_ip_flow_setting_get_string(cdecklink_ip_flow_setting_t *obj, DecklinkIPFlowSettingID settingID, const char ** value) {
+#if defined(__LINUX__)
 	return obj->GetString((BMDDeckLinkIPFlowSettingID)settingID, (const char **)value);
+#elif defined(__APPLE__)
+    CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetString((BMDDeckLinkIPFlowSettingID)settingID, &cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, value);
+
+    return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 HRESULT cdecklink_ip_flow_setting_set_int(cdecklink_ip_flow_setting_t *obj, DecklinkIPFlowSettingID settingID, int64_t value) {
@@ -483,7 +627,15 @@ HRESULT cdecklink_ip_flow_setting_set_float(cdecklink_ip_flow_setting_t *obj, De
 }
 
 HRESULT cdecklink_ip_flow_setting_set_string(cdecklink_ip_flow_setting_t *obj, DecklinkIPFlowSettingID settingID, const char * value) {
+#if defined(__LINUX__)
 	return obj->SetString((BMDDeckLinkIPFlowSettingID)settingID, (const char *)value);
+#elif defined(__APPLE__)
+    CFStringRef cf_string_ref = CFStringCreateWithCString(kCFAllocatorDefault, value, kCFStringEncodingUTF8);
+
+	return obj->SetString((BMDDeckLinkIPFlowSettingID)settingID, cf_string_ref);
+#else
+#warning "System not supported."
+#endif
 }
 
 
@@ -965,7 +1117,18 @@ HRESULT cdecklink_video_frame_metadata_extensions_get_flag(cdecklink_video_frame
 }
 
 HRESULT cdecklink_video_frame_metadata_extensions_get_string(cdecklink_video_frame_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, const char ** value) {
+#if defined(__LINUX__)
 	return obj->GetString((BMDDeckLinkFrameMetadataID)metadataID, (const char **)value);
+#elif defined(__APPLE__)
+    CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetString((BMDDeckLinkFrameMetadataID)metadataID, &cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, value);
+
+    return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 HRESULT cdecklink_video_frame_metadata_extensions_get_bytes(cdecklink_video_frame_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, void * buffer, uint32_t * bufferSize) {
@@ -998,7 +1161,15 @@ HRESULT cdecklink_video_frame_mutable_metadata_extensions_set_flag(cdecklink_vid
 }
 
 HRESULT cdecklink_video_frame_mutable_metadata_extensions_set_string(cdecklink_video_frame_mutable_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, const char * value) {
+#if defined(__LINUX__)
 	return obj->SetString((BMDDeckLinkFrameMetadataID)metadataID, (const char *)value);
+#elif defined(__APPLE__)
+    CFStringRef cf_string_ref = CFStringCreateWithCString(kCFAllocatorDefault, value, kCFStringEncodingUTF8);
+
+	return obj->SetString((BMDDeckLinkFrameMetadataID)metadataID, cf_string_ref);
+#else
+#warning "System not supported."
+#endif
 }
 
 HRESULT cdecklink_video_frame_mutable_metadata_extensions_set_bytes(cdecklink_video_frame_mutable_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, void * buffer, uint32_t bufferSize) {
@@ -1328,7 +1499,18 @@ HRESULT cdecklink_profile_attributes_get_float(cdecklink_profile_attributes_t *o
 }
 
 HRESULT cdecklink_profile_attributes_get_string(cdecklink_profile_attributes_t *obj, DecklinkAttributeID cfgID, const char ** value) {
-	return obj->GetString((BMDDeckLinkAttributeID)cfgID, (const char **)value);
+#if defined(__LINUX__)
+    return obj->GetString((BMDDeckLinkAttributeID)cfgID, (const char **)value);
+#elif defined(__APPLE__)
+    CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetString((BMDDeckLinkAttributeID)cfgID, &cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, value);
+
+	return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 
@@ -1413,7 +1595,18 @@ HRESULT cdecklink_status_get_float(cdecklink_status_t *obj, DecklinkStatusID sta
 }
 
 HRESULT cdecklink_status_get_string(cdecklink_status_t *obj, DecklinkStatusID statusID, const char ** value) {
+#if defined(__LINUX__)
 	return obj->GetString((BMDDeckLinkStatusID)statusID, (const char **)value);
+#elif defined(__APPLE__)
+    CFStringRef cf_string_ref;
+    HRESULT ret = obj->GetString((BMDDeckLinkStatusID)statusID, &cf_string_ref);
+
+    CFStringRefToConstChar(cf_string_ref, value);
+
+	return ret;
+#else
+#warning "System not supported."
+#endif
 }
 
 HRESULT cdecklink_status_get_bytes(cdecklink_status_t *obj, DecklinkStatusID statusID, void * buffer, uint32_t * bufferSize) {

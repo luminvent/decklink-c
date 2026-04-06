@@ -1,6 +1,9 @@
 #include <memory>
 #include "types.h"
 #include <cstdlib>
+#if defined(__APPLE__)
+#include "../interop/Mac/include/platform.h"
+#endif
 
 #ifndef DECKLINK_C_CUSTOM_TYPES_H
 #define DECKLINK_C_CUSTOM_TYPES_H
@@ -22,7 +25,19 @@ HRESULT cdecklink_api_version(cdecklink_iterator_t* it, const char** str) {
     HRESULT result = it->QueryInterface(IID_IDeckLinkAPIInformation, reinterpret_cast<void**>(&info));
     if (FAILED(result)) return result;
 
-    return info->GetString(BMDDeckLinkAPIVersion, str);
+    #if defined(__LINUX__)
+    	return info->GetString(BMDDeckLinkAPIVersion, str);
+    #elif defined(__APPLE__)
+        CFStringRef value;
+        HRESULT ret = info->GetString(BMDDeckLinkAPIVersion, &value);
+
+        CFStringRefToConstChar(value, str);
+
+        return ret;
+    #else
+    #warning "System not supported."
+    #endif
+
 }
 
 HRESULT cdecklink_device_query_status(cdecklink_device_t *obj, cdecklink_status_t **dst) {

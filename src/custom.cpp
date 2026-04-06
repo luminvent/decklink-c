@@ -1,5 +1,8 @@
 #include "./types.h"
 #include "../include/custom.h"
+#if defined(__APPLE__)
+#include "../interop/Mac/include/platform.h"
+#endif
 
 #include <atomic>
 #include <cstring>

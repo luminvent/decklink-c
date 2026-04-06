@@ -5,10 +5,12 @@
 #include "include/decklink_c.h"
 
 int main() {
+    printf("Start\n\n");
     cdecklink_iterator_t *iterator = cdecklink_create_decklink_iterator_instance();
     if (!iterator)
         goto CLEANUP;
 
+    printf("Start 1\n\n");
     const char *version;
     if (FAILED(cdecklink_api_version(iterator, &version)))
         goto CLEANUP;
